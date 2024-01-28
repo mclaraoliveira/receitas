@@ -1,9 +1,13 @@
-const searchBar = document.getElementById('search-btn');
+const searchBtn = document.getElementById('search-btn');
 const mealList = document.getElementById('meal');
 const mealDetailsContent = document.querySelector('.meal-details-content');
 const recipeCloseBtn = document.getElementById('recipe-close-btn');
 
-searchBar.addEventListener('click', getMealList); // Aqui troquei searchBtn por searchBar
+searchBtn.addEventListener('click', getMealList);
+mealList.addEventListener('click', getMealRecipe);
+recipeCloseBtn.addEventListener('click', () => {
+    mealDetailsContent.parentElement.classList.remove ('showRecipe');
+});
 
 function getMealList() {
     let searchInputTxt = document.getElementById('search-input').value.trim();
@@ -25,6 +29,7 @@ function getMealList() {
                     </div>
                     `;
             });
+            mealList.classList.remove('notFound');
         } else {
             html = "Desculpe, não encontramos nenhuma receita!";
             mealList.classList.add('notFound');
@@ -32,4 +37,35 @@ function getMealList() {
 
         mealList.innerHTML = html;
     });
+}
+
+function getMealRecipe(e){
+    e.preventDefault();
+    if(e.target.classList.contains('recipe-btn')){
+        let mealItem = e.target.parentElement.parentElement;
+        fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${mealItem.dataset.id}`)
+        .then(response => response.json())
+        .then(data => mealRecipeModal(data.meals));
+    }
+}
+
+function mealRecipeModal(meal){
+    meal = meal[0]
+    let html = `
+    <h2 class="recipe-title"> ${meal.strMeal}</h2>
+                <p class="recipe-category">${meal.strCategory}</p>
+                <div class="recipe-instruction">
+                    <h3>Instruções:</h3>
+                    <p>${meal.strInstructions}</p>
+                </div>
+                <div class="recipe-meal-img">
+                    <img src="${meal.strMealThumb}" alt="">
+                </div>
+                <div class="recipe-link">
+                    <a href="${meal.strYoutube}" target="_blank">Assista ao Vídeo</a>
+                </div>
+                `;
+
+                mealDetailsContent.innerHTML = html;
+                mealDetailsContent.parentElement.classList.add ('showRecipe');
 }
